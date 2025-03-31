@@ -2,7 +2,8 @@
 #include <iostream>
 #include <fstream>
 
-int main() {
+int main() 
+{
     IsingModel1D test(10, 1.0);
     std::ofstream outfile("test_ising.csv");
     outfile << "Energy," << test.compute_energy() << std::endl;

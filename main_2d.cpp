@@ -5,11 +5,12 @@
 #include "isingmodel2d.h"
 #include "monte_carlo_sim_2d.h"
 
-int main(){
+int main()
+{
     const int width = 100;         
     const int height = 100;        
     const double J = 1.0;          
-    const int steps = 100000;        
+    const int steps = 1e5;        
     const int num_configs = 100;          // Beta sweep parameters
     const double beta_min = 0.1;
     const double beta_max = 1.5;
@@ -18,10 +19,12 @@ int main(){
     std::ofstream outfile("ising_2d_results.csv");
     outfile << "Beta,Average Energy,Average Magnetisation\n";
 
-    for (double beta = beta_min; beta <= beta_max + 1e-9; beta += beta_step) {
+    for (double beta = beta_min; beta <= beta_max + 1e-9; beta += beta_step) 
+    {
         double total_energy = 0.0;
         double total_mag = 0.0;
-        for (int config = 0; config < num_configs; ++config) {
+        for (int config = 0; config < num_configs; config++) 
+        {
             IsingModel2D model(width, height, J);
             model.randomise_spins();
             Monte_Carlo_Sim_2D simulator(model, beta);

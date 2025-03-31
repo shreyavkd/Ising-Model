@@ -1,43 +1,49 @@
-# Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++11 -I./headers
+SRC_DIR = ./src
+HEADERS_DIR = ./headers
+OUTPUT_DIR = ./bin
 
-# Executable names
-EXEC1 = ising1d
-EXEC2 = ising2d
-EXEC3 = test_case
+# Create output directory if it doesn't exist
+$(shell mkdir -p $(OUTPUT_DIR))
 
-# Source files for each executable
-SRC1 = main_1d.cpp isingmodel.cpp monte_carlo_sim_1d.cpp
-SRC2 = main_2d.cpp isingmodel2d.cpp monte_carlo_sim_2d.cpp
-SRC3 = test_case.cpp isingmodel.cpp
+# Target executables
+ISING1D = $(OUTPUT_DIR)/ising1d
+ISING2D = $(OUTPUT_DIR)/ising2d
+TEST_CASE = $(OUTPUT_DIR)/test_case
+
+# Source files
+ISING1D_SRC = main_1d.cpp $(SRC_DIR)/isingmodel.cpp $(SRC_DIR)/monte_carlo_sim_1d.cpp
+ISING2D_SRC = main_2d.cpp $(SRC_DIR)/isingmodel2d.cpp $(SRC_DIR)/monte_carlo_sim_2d.cpp
+TEST_CASE_SRC = test_case.cpp $(SRC_DIR)/isingmodel.cpp
 
 # Default target
-all: $(EXEC1) $(EXEC2) $(EXEC3) run_python
+all: $(ISING1D) $(ISING2D) $(TEST_CASE)
 
-# Compile and build executables
-$(EXEC1): $(SRC1)
-	$(CXX) $(CXXFLAGS) -o $(EXEC1) $(SRC1)
+# Compile targets
+$(ISING1D): $(ISING1D_SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-$(EXEC2): $(SRC2)
-	$(CXX) $(CXXFLAGS) -o $(EXEC2) $(SRC2)
+$(ISING2D): $(ISING2D_SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-$(EXEC3): $(SRC3)
-	$(CXX) $(CXXFLAGS) -o $(EXEC3) $(SRC3)
+$(TEST_CASE): $(TEST_CASE_SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# Run all executables and python scripts
-run: $(EXEC1) $(EXEC2) $(EXEC3)
-	./$(EXEC1)
-	./$(EXEC2)
-	./$(EXEC3)
+# Run all programs and Python scripts
+run: all
+	@echo "Running ising1d..."
+	@./$(ISING1D)
+	@echo "Running ising2d..."
+	@./$(ISING2D)
+	@echo "Running test_case..."
+	@./$(TEST_CASE)
+	@echo "Running Python scripts..."
 	python3 plot_ising_1d.py
 	python3 plot_ising_2d.py
 
-# Separate Python scripts execution target
-run_python:
-	python3 plot_ising_1d.py
-	python3 plot_ising_2d.py
-
-# Clean up compiled files
+# Clean compiled files
 clean:
-	rm -f $(EXEC1) $(EXEC2) $(EXEC3)
+	rm -rf $(OUTPUT_DIR)/*.o $(OUTPUT_DIR)/ising1d $(OUTPUT_DIR)/ising2d $(OUTPUT_DIR)/test_case
+
+.PHONY: all clean run
