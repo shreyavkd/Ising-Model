@@ -17,12 +17,14 @@ class System
         int get_spin(int index);
         void set_spin(int index, int spin);
 
+        int get_J();
+
         int population_size(); //returns num_population
 
         double energy(); 
         double magnetisation();
 
-        void save(const std::string &filename);
+        void save(const std::string &filename) const;
 };
 
 #endif

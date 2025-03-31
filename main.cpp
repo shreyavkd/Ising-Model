@@ -1,18 +1,27 @@
 #include "system.h"
 #include "monte_carlo_sim.h"
-#include <math.h>
+#include <iostream>
+#include <fstream>
+#include <time.h>
 
-int main()
-{
-    int num_of_sites = 100;
-    System system_1d(num_of_sites);
+int main() {
+    srand(time(0)); // Initialize random seed
 
-    int num_iterations = pow(2,100);
-    Monte_Carlo_Sim simulation_1d(system_1d, num_iterations, 1);
+    // ---------------------- 1D Ising Model ---------------------- //
+    int num_sites = 100;
+    double beta = 0.5;
+    int num_iterations = 100000;
 
-    simulation_1d.run_simulation();
+    System system_1d(num_sites);
+    Monte_Carlo_Sim sim_1d(system_1d, beta);
 
-    simulation_1d.record_data(system_1d.energy(), system_1d.magnetisation());
-
-    return 1;
+    std::ofstream file1d("ising_1d_data.txt");
+    for (int i = 0; i < num_iterations; i++) 
+    {
+        sim_1d.run_simulation(1); // Single MC step
+        file1d << system_1d.energy() << " " << system_1d.magnetisation() << "\n";
+    }
+    file1d.close();
+    std::cout << "1D simulation complete. Data saved to ising_1d_data.txt\n";
+    return 0;
 }

@@ -1,5 +1,6 @@
 #include "system.h"
 #include <time.h>
+#include <fstream>
 
 using namespace std;
 
@@ -33,6 +34,11 @@ void System::set_spin(int index, int spin)
         if (spin == 1 || spin == -1)
         { sites[index] = spin; }
     }
+}
+
+int System::get_J()
+{
+    return J;
 }
 
 double System::energy()
