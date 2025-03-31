@@ -1,20 +1,29 @@
-#include <iostream>
-#include <random>
 #include "monte_carlo_sim.h"
 #include <math.h>
 #include <time.h>
 
 using namespace std;
 
-Monte_Carlo_Sim::Monte_Carlo_Sim(System s, double b)
+Monte_Carlo_Sim::Monte_Carlo_Sim(System &s, double b) : system(s)
 {
-    this-> system = s;
     this-> beta = b;
 }
 
-void Monte_Carlo_Sim::monte_carlo_step(int energy_change, int rand_choice_index)
+void Monte_Carlo_Sim::monte_carlo_step()
 {
     srand(time(0));
+    int n = system.population_size();
+    int J = system.get_J();
+
+    int rand_choice_index = rand() % n;
+    
+    int current_spin = system.get_spin(rand_choice_index);
+    int neighbour_index_1 = (rand_choice_index -1 + n) % n;
+    int neighbour_index_2 = (rand_choice_index +1 + n) % n;
+
+    int energy_change_1 = -1 * (-J * system.get_spin(rand_choice_index) * system.get_spin(neighbour_index_1));
+    int energy_change_2 = -1 * (-J * system.get_spin(rand_choice_index) * system.get_spin(neighbour_index_2));
+    int energy_change = energy_change_1 + energy_change_2;
 
     double P = exp(-beta * energy_change);
     if (P>1) P = 1;
@@ -33,35 +42,6 @@ void Monte_Carlo_Sim :: run_simulation(int num_iterations)
 {
     for (int i=0; i < num_iterations; i++)
     {
-        int max_index = system.population_size();
-        int rand_choice_index = rand() % max_index;
-
-        int energy_change = 0;
-
-        //ensure circular chain - the following adjusts neighbours when index = 0 or n-1
-        int neighbour_index_1 = (rand_choice_index -1 + max_index) % max_index;
-        int neighbour_index_2 = (rand_choice_index +1 + max_index) % max_index;
-
-        int energy_change_1 = -1 * (-J * system.get_spin(rand_choice_index) * system.get_spin(neighbour_index_1));
-        int energy_change_2 = -1 * (-J * system.get_spin(rand_choice_index) * system.get_spin(neighbour_index_2));
-        energy_change = energy_change_1 + energy_change_2;
-
-        monte_carlo_step(energy_change, rand_choice_index);
+        monte_carlo_step();
     }
-}
-
-void Monte_Carlo_Sim::record_data(int energy, int magnetisation)
-{
-    energies.push_back(energy);
-    magnetisations.push_back(magnetisation);
-}
-
-void Monte_Carlo_Sim::save(const std::string &filename)
-{
-    std::ofstream outFile(filename);
-    for (int i=0; i < system.population_size(); i++)
-    {
-        outFile<< energies[i] << " " << magnetisations[i] << std::endl;
-    }
-    outFile.close()
 }

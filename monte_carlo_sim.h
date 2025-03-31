@@ -16,7 +16,7 @@ class Monte_Carlo_Sim
 
     public:
         Monte_Carlo_Sim(System &s, double b);
-        void monte_carlo_step(int energy_change, int rand_choice_index);
+        void monte_carlo_step();
         void run_simulation(int num_iterations);
 };
 
