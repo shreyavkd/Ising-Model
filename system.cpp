@@ -41,6 +41,11 @@ int System::get_J()
     return J;
 }
 
+int System::population_size()
+{
+    return num_population;
+}
+
 double System::energy()
 {
     double total_energy = 0;

@@ -24,4 +24,8 @@ int main() {
     file1d.close();
     std::cout << "1D simulation complete. Data saved to ising_1d_data.txt\n";
     return 0;
+
+    system_1d.save("ising_output.txt");
+    std::cout << "Simulation data saved to ising_output.txt" << std::endl;
+
 }

@@ -1,6 +1,7 @@
 #include "monte_carlo_sim.h"
 #include <math.h>
 #include <time.h>
+#include <iostream>
 
 using namespace std;
 
@@ -36,6 +37,10 @@ void Monte_Carlo_Sim::monte_carlo_step()
         int spin_new = -1 * spin_old;
         system.set_spin(rand_choice_index, spin_new);
     }
+
+    std::cout << "Attempting flip at site " << rand_choice_index 
+          << " with P = " << P << " and rand = " << random_num << std::endl;
+
 }
 
 void Monte_Carlo_Sim :: run_simulation(int num_iterations)
