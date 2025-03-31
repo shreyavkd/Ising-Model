@@ -23,8 +23,9 @@ class System
         double population_size(); //returns num_population
 
         double energy(); 
-
         double magnetisation();
+
+        void save(const std::string &filename);
 };
 
 #endif
