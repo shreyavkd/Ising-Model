@@ -1,30 +1,27 @@
-#include "Monte_Carlo_Sim_2D.h"
-#include <cstdlib>
+#include "monte_carlo_sim_2d.h"
+#include <random>
 #include <cmath>
 
-// Constructor: stores reference to the model and a beta value
-Monte_Carlo_Sim_2D::Monte_Carlo_Sim_2D(IsingModel2D& model, double beta)
-    : model(model), beta(beta){}
+Monte_Carlo_Sim_2D::Monte_Carlo_Sim_2D(IsingModel2D &m, double b) : model(m), beta(b) {}
 
-// Performing Metropolis updates over steps
-void Monte_Carlo_Sim_2D::run_simulation(int steps){
-    for(int i = 0; i < steps; ++i){
-        int width = 100;
-        int height = 100;
+void Monte_Carlo_Sim_2D::monte_carlo_step() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<> dis_real(0.0, 1.0);
+    int width = model.get_width();
+    int height = model.get_height();
+    std::uniform_int_distribution<> dis_x(0, width - 1);
+    std::uniform_int_distribution<> dis_y(0, height - 1);
+    int x = dis_x(gen);
+    int y = dis_y(gen);
+    double delta_E = model.change_in_energy(x, y);
+    if (delta_E <= 0 || dis_real(gen) < exp(-beta * delta_E)) {
+        model.flip_spin(x, y);
+    }
+}
 
-        // Selecting a random spin (x,y) in the grid
-        int x = std::rand() % width;
-        int y = std::rand() % height;
-
-        // Computing the energy change if we selected spin is flipped
-        double dE = model.change_in_energy(x,y);
-
-        // Computing acceptance probability
-        double P = std::exp(-beta * dE);
-
-        // Accepting flip with probability P
-        if(P >= 1.0 || ((double) std::rand() / RAND_MAX < P)){
-            model.flip_spin(x, y);
-        }
+void Monte_Carlo_Sim_2D::run_simulation(int num_iterations) {
+    for (int i = 0; i < num_iterations; i++) {
+        monte_carlo_step();
     }
 }

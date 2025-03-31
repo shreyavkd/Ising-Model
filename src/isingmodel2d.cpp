@@ -1,89 +1,97 @@
 #include "isingmodel2d.h"
+#include <random>
+#include <cmath>
 #include <iostream>
-#include <fstream>
-#include <stdlib.h>
-#include <time.h>
 
-IsingModel2D::IsingModel2D(int width, int height, double J)
-{
-    spins.resize(width, std::vector<int>(height));
+// Periodic boundary conditions for x-coordinate
+int IsingModel2D::periodicX(int x) const {
+    if (x < 0) return x + width;
+    if (x >= width) return x - width;
+    return x;
+}
+
+// Periodic boundary conditions for y-coordinate
+int IsingModel2D::periodicY(int y) const {
+    if (y < 0) return y + height;
+    if (y >= height) return y - height;
+    return y;
+}
+
+// Constructor
+IsingModel2D::IsingModel2D(int width, int height, double J) 
+    : width(width), height(height), J(J), spins(height, std::vector<int>(width, 1)) {
     randomise_spins();
 }
 
-void IsingModel2D::randomise_spins()
-{
-    srand(time(0));
-    
-    for (int x = 0; x < width; x++) 
-    {
-        for (int y = 0; y < width; y++) 
-        {
-            spins[x][y] = rand() % 2;
-            if (spins[x][y] == 0) spins[x][y] = -1;
+// Initialize with random spins
+void IsingModel2D::randomise_spins() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, 1);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            spins[y][x] = 2 * dis(gen) - 1;
         }
     }
 }
 
-int IsingModel2D::get_spin(int x, int y)
-{
-    return spins[x][y];
+// Get a specific spin
+int IsingModel2D::get_spin(int x, int y) {
+    return spins[periodicY(y)][periodicX(x)];
 }
 
-void IsingModel2D::set_spin(int x, int y, int spin) 
-{
-    spins[x][y] = spin;
+// Set a specific spin
+void IsingModel2D::set_spin(int x, int y, int spin) {
+    spins[periodicY(y)][periodicX(x)] = spin;
 }
 
-void IsingModel2D::flip_spin(int x, int y)
-{
-    spins[x][y] = -1*spins[x][y];
+// Flip a specific spin
+void IsingModel2D::flip_spin(int x, int y) {
+    spins[periodicY(y)][periodicX(x)] *= -1;
 }
 
-double IsingModel2D::compute_energy()
-{
-    double energy = 0;
-    for (int x = 0; x < width; x++) 
-    {
-        for (int y = 0; y < height; y++) 
-        {
-            int neighbour_1 = get_spin(periodicX(x+1), y);
-            int neighbour_2 = get_spin(x, periodicY(y+1));
+// Get width
+int IsingModel2D::get_width() const {
+    return width;
+}
 
-            energy += -J * spins[x][y] * (neighbour_1 + neighbour_2);
+// Get height
+int IsingModel2D::get_height() const {
+    return height;
+}
+
+// Calculate the total energy (avoiding double counting)
+double IsingModel2D::compute_energy() {
+    double energy = 0.0;
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            // Only count rightward and downward interactions
+            if (x < width - 1)
+                energy -= J * spins[y][x] * spins[y][x + 1];
+            if (y < height - 1)
+                energy -= J * spins[y][x] * spins[y + 1][x];
         }
     }
     return energy;
 }
 
-double IsingModel2D::compute_magnetisation()
-{
-    double magnetisation = 0;
-    for (int x=0; x < width; x++)
-    {
-        for (int y=0; y<height; y++)
-        {
-            magnetisation += get_spin(x,y);
+// Calculate the magnetisation
+double IsingModel2D::compute_magnetisation() {
+    double mag = 0.0;
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            mag += spins[y][x];
         }
     }
-    return magnetisation;
+    return mag / (width * height); // Normalized per spin
 }
 
-double IsingModel2D::change_in_energy(int x, int y)
-{
-    int sum_neighbours= get_spin(periodicX(x-1), y) +
-    get_spin(periodicX(x+1), y) +
-    get_spin(x, periodicY(y - 1)) +
-    get_spin(x, periodicY(y + 1));
-
-    return -1 * J * get_spin(x,y) * sum_neighbours;
-}
-
-int IsingModel2D::periodicX(int x) const
-{
-    return (x+width) % width;
-}
-
-int IsingModel2D::periodicY(int y) const
-{
-    return (y + height) % height;
+// Calculate energy change when flipping a spin
+double IsingModel2D::change_in_energy(int x, int y) {
+    return 2 * J * spins[y][x] * (
+        spins[periodicY(y - 1)][periodicX(x)] + 
+        spins[periodicY(y + 1)][periodicX(x)] + 
+        spins[periodicY(y)][periodicX(x - 1)] + 
+        spins[periodicY(y)][periodicX(x + 1)]
+    );
 }
