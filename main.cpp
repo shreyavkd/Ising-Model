@@ -1,31 +1,65 @@
-#include "system.h"
-#include "monte_carlo_sim.h"
 #include <iostream>
-#include <fstream>
-#include <time.h>
+#include <numeric>
+#include <fstream> 
+#include <iomanip>  //for decimal output
+#include "isingmodel2D.h"
+#include "monte_carlo_sim_2D.h"
+#include <math.h>
 
-int main() {
-    srand(time(0)); // Initialize random seed
+using namespace std;
 
-    // ---------------------- 1D Ising Model ---------------------- //
-    int num_sites = 100;
-    double beta = 0.5;
-    int num_iterations = 100000;
+int main(){
+    const int width = 100;          
+    const int height = 100;         
+    const double J = 1.0;           
+    const double beta = 0.5;        
+    const int steps = 1e5;      
+    const int num_configs = 100;     
+    
+    // Beta sweep parameters
+    const double beta_min = 0.1;
+    const double beta_max = 1.5;
+    const double beta_step = 0.1;
 
-    System system_1d(num_sites);
-    Monte_Carlo_Sim sim_1d(system_1d, beta);
+    // Output file for saving results
+    std::ofstream outfile("ising_2d_results.csv");
+    outfile << "Beta, Average Energy, Average Magnetisation\n";
 
-    std::ofstream file1d("ising_1d_data.txt");
-    for (int i = 0; i < num_iterations; i++) 
-    {
-        sim_1d.run_simulation(1); // Single MC step
-        file1d << system_1d.energy() << " " << system_1d.magnetisation() << "\n";
+    // Looping over beta values
+    for(double beta = beta_min; beta <= beta_max + 1e-9; beta += beta_step){
+        double total_energy = 0.0;
+        double total_mag = 0.0;
+
+        // Repeating simulation for each beta value to compute averages
+        for(int config = 0; config < num_configs; ++config){
+            // Creating a new Ising model with randomised spin configuration
+            IsingModel2D model(width, height, J);
+            model.randomise_spins();
+
+            // Creating and running the Monte Carlo simulator
+            Monte_Carlo_Sim_2D simulator(model, beta);
+            simulator.run_simulation(steps);       
+
+            // Accumulating for averaging later
+            total_energy += model.compute_energy();
+            total_mag += std::abs(model.compute_magnetisation());
+        }
+
+        // Computing averages for this beta
+        double avg_E = total_energy / num_configs;
+        double avg_M = total_mag / num_configs;
+
+        // Printing out to terminal
+        std::cout << std::fixed << std::setprecision(3);
+        std::cout << "β = " << beta << " | Energy = " << avg_E << " | Magnetisation = " << avg_M << "\n";
+
+        // Writing results to CSV
+        outfile << beta << "," << avg_E << "," << avg_M << "\n";
     }
-    file1d.close();
-    std::cout << "1D simulation complete. Data saved to ising_1d_data.txt\n";
+
+    // Closing the file after writing all the data
+    outfile.close();
+    std::cout << "\nResults written to 'ising_2d_results.csv'.\n";
+    
     return 0;
-
-    system_1d.save("ising_output.txt");
-    std::cout << "Simulation data saved to ising_output.txt" << std::endl;
-
 }
